@@ -3,7 +3,7 @@ require APPROOT . '/views/includes/head.php';
 require APPROOT . '/views/includes/navigation.php';
 ?>
 <main>
-  <div class="slide">
+  <div class="slide" style="display: none;">
     <div class="slideshow-container">
       <div class="mySlides">
         <div class="slideshow-img-box" style="background-image: url('<?php echo URLROOT ?>/public/img/slide1.jpg');"></div>
@@ -36,6 +36,8 @@ require APPROOT . '/views/includes/navigation.php';
       <a class="next" onclick="plusSlides(1)">❯</a>
     </div>
   </div>
+
+  <h1>Pollák Időpontfoglaló Rendszere</h1>
 
   <div class="">
     <div>
@@ -106,7 +108,8 @@ require APPROOT . '/views/includes/navigation.php';
             <br>
             <p class="helyek">Téma: <b><?php echo $sor->tema ?></b></p>
             <br>
-            <p class="idopont">Esemény időpontja: <br> <?php $datum = new DateTime($sor->datum); echo $datum->format('Y.m.d. H:i'); ?></p>
+            <p class="idopont">Esemény időpontja: <br> <?php $datum = new DateTime($sor->datum);
+                                                        echo $datum->format('Y.m.d. H:i'); ?></p>
             <a class="tovabb" href="<?php echo URLROOT . "/reszletek/" . $sor->esemeny_id; ?>">Tovább</a>
 
           </div>

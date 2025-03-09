@@ -41,10 +41,11 @@ class ReszletekModel
         $this->db->query(
             'SELECT e.cim, e.leiras, e.kep, e.datum, e.id AS "esemeny_id", u.nev, t.neve, t.ferohely, count(j.email) as "jelentkezok"
                           FROM esemenyek e
-                          INNER JOIN users u ON e.tanarID = u.id
-                          INNER JOIN tanterem t ON e.tanteremID = t.id
-                          LEFT JOIN jelentkezok_vt j ON e.id = j.esemenyID AND j.torolt = 0 AND j.visszaigazolt = 1
-                          WHERE e.id = :id AND e.torolt = 0'
+                          INNER JOIN users u ON e.tanarid = u.id
+                          INNER JOIN tanterem t ON e.tanteremid = t.id
+                          LEFT JOIN jelentkezok_vt j ON e.id = j.esemenyid AND j.torolt = false AND j.visszaigazolt = true
+                          WHERE e.id = :id AND e.torolt = false
+                          GROUP BY e.cim, e.leiras, e.kep, e.datum, e.id, u.nev, t.neve, t.ferohely'
         );
         $this->db->bind(':id', $id);
         $results = $this->db->single();
@@ -54,7 +55,7 @@ class ReszletekModel
 
     public function visszaigazol($id)
     {
-        $this->db->query('UPDATE jelentkezok SET visszaigazolt = 1 WHERE id = :id');
+        $this->db->query('UPDATE jelentkezok SET visszaigazolt = true WHERE id = :id');
         $this->db->bind(':id', $id);
         $this->db->execute();
 
@@ -89,7 +90,7 @@ class ReszletekModel
 
     public function torol($id)
     {
-        $this->db->query('UPDATE jelentkezok SET torolt = 1 WHERE id = :id');
+        $this->db->query('UPDATE jelentkezok SET torolt = true WHERE id = :id');
         $this->db->bind(':id', $id);
 
         if ($this->db->execute()) {
@@ -110,7 +111,7 @@ class ReszletekModel
         $tiltasrow = $this->db->resultSet();
 
         if (count($tiltasrow) > 0) {
-            return false;
+            return 0;
         }
 
         $this->db->query('SELECT nev from tiltottnevek where nev like :tiltottnev');
@@ -118,29 +119,29 @@ class ReszletekModel
         $tiltott = $this->db->resultSet();
 
         if (count($tiltott) > 0) {
-            return false;
+            return 0;
         }
 
         // Lekérdezzük, hogy az adott email cím már szerepel-e az adatbázisban
         // Ha igen, akkor nem engedjük hozzáadni
         // Ha nem, akkor hozzáadjuk
-        $this->db->query('SELECT * FROM jelentkezok_vt WHERE email = :email AND esemenyID = :esemenyID AND torolt = 0');
+        $this->db->query('SELECT * FROM jelentkezok_vt WHERE email = :email AND esemenyID = :esemenyID AND torolt = false');
         $this->db->bind(':email', $email);
         $this->db->bind(':esemenyID', $esemenyID);
 
         $row = $this->db->resultSet();
 
         if (count($row) > 0) {
-            return false;
+            return 1;
         }
 
-        $this->db->query('INSERT INTO jelentkezok (esemenyID, email, neve) VALUES (:esemenyID, :email, :neve)');
+        $this->db->query('INSERT INTO jelentkezok (esemenyid, email, neve) VALUES (:esemenyID, :email, :neve)');
         $this->db->bind(':esemenyID', $esemenyID);
         $this->db->bind(':email', $email);
         $this->db->bind(':neve', $neve);
         $this->db->execute();
 
-        $this->db->query('SELECT id FROM jelentkezok_vt WHERE email = :email AND esemenyID = :esemenyID AND torolt = 0');
+        $this->db->query('SELECT id FROM jelentkezok_vt WHERE email = :email AND esemenyID = :esemenyID AND torolt = false');
         $this->db->bind(':email', $email);
         $this->db->bind(':esemenyID', $esemenyID);
 
@@ -164,9 +165,9 @@ class ReszletekModel
         $this->sendEmail($email, $neve, $subject, $body);
 
         if ($insertedId) {
-            return true;
+            return 2;
         } else {
-            return false;
+            return 3;
         }
     }
 

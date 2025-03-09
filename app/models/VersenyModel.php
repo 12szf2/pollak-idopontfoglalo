@@ -1,14 +1,17 @@
 <?php
 
-class VersenyModel {
+class VersenyModel
+{
     private $db;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->db = new Database;
     }
 
     // Versenyek adatainak lekérdezése
-    public function kartyaLekerdezes() {
+    public function kartyaLekerdezes()
+    {
         $this->db->query(
             'SELECT
                 e.tema, e.versenynev, e.idopont,e.jelentkezesiHatarido,e.kep, e.id AS "esemeny_id",
@@ -16,15 +19,16 @@ class VersenyModel {
             FROM
                 versenyek e
             LEFT JOIN
-                versenyjelentkezok j ON e.id = j.versenyID AND j.torolt = 0
+                versenyjelentkezok j ON e.id = j.versenyID AND j.torolt = false
             WHERE
-                e.torolt = 0
+                e.torolt = false
             GROUP BY
                 e.versenynev, e.idopont, e.id
-            ');
+            '
+        );
 
         $results = $this->db->resultSet();
-        
+
         return $results;
     }
 }

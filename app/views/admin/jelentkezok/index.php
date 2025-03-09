@@ -39,20 +39,18 @@ require APPROOT . '/views/includes/adminNavigation.php';
                     <?php foreach ($data["idopontok"] as $sor2): ?>
                         <td>
                             <?php
+
                             if (isset($sor->idopont_terem) && !empty($sor->idopont_terem)) {
                                 $idopontTeremParts = explode(',', $sor->idopont_terem);
-
                                 $matchFound = false;
 
                                 foreach ($idopontTeremParts as $part) {
                                     $idopontTeremArray = explode(';', $part);
 
-                                    if (count($idopontTeremArray) > 1) {
-                                        if ($idopontTeremArray[0] == $sor2->idopont) {
-                                            echo htmlspecialchars($idopontTeremArray[1]);
-                                            echo "<br>";
-                                            $matchFound = true;
-                                        }
+                                    if (count($idopontTeremArray) > 1 && $idopontTeremArray[0] == substr($sor2->idopont, 0, -3)) {
+                                        echo htmlspecialchars($idopontTeremArray[1]);
+                                        echo "<br>";
+                                        $matchFound = true;
                                     }
                                 }
                                 if (!$matchFound) {
@@ -79,18 +77,18 @@ require APPROOT . '/views/includes/adminNavigation.php';
         <?php endif; ?>
 
 
-    </table>    
+    </table>
     <!--Felhasználók exportálása-->
 
-    <form class="export" action="<?= URLROOT; ?>/admin/mindenkiexportPDF/" method="post">
+    <!-- <form class="export" action="<?= URLROOT; ?>/admin/mindenkiexportPDF/" method="post">
         <button type="submit" class="export_gomb export2">Minden felhasználó exportálása</button>
     </form>
     <form class="export" action="<?= URLROOT; ?>/admin/exportPDF/" method="post">
         <button type="submit" class="export_gomb export2">Felhasználók exportálása</button>
-    </form>
+    </form> -->
 
     <!--Összes felhasználó törlése-->
-    <form class="export"  onclick="return confirm('Biztos törölni szeretnéd az összes felhasználót?')" action="<?= URLROOT; ?>/admin/osszesFelhasznaloTorlese/" method="post">
+    <form class="export" onclick="return confirm('Biztos törölni szeretnéd az összes felhasználót?')" action="<?= URLROOT; ?>/admin/osszesFelhasznaloTorlese/" method="post">
         <button type="submit" class="export_gomb export2">Felhasználók törlése</button>
     </form>
 

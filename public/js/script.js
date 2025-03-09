@@ -13,36 +13,33 @@ var modal = document.getElementById("myModal");
 
 // When the user clicks the button, open the modal
 window.onload = function () {
-  if (window.location.search === "?msg=0") {
-    modal.children[0].children[0].innerHTML = "Sikeres regisztráció!";
+  if (window.location.search.startsWith("?msg=")) {
+    const msg = window.location.search.split("=")[1];
+    let message = "";
+    switch (msg) {
+      case "0":
+        message = "Tiltott emailcím vagy név!";
+        break;
+      case "1":
+        message = "Erre az eseményre már jelentkezett!";
+        break;
+      case "2":
+        message = "A regisztráció sikeresen megtörtént!";
+        break;
+      case "3":
+        message = "A regisztráció sikertelen!";
+        break;
+      default:
+        message = "Ismeretlen üzenet!";
+    }
+    modal.children[0].children[0].innerHTML = message;
     modal.style.display = "block";
     setTimeout(() => {
       modal.style.display = "none";
       window.location.replace(window.location.href.split("?")[0]);
-    }, 1000);
-  } else if (window.location.search === "?msg=1") {
-    modal.children[0].children[0].innerHTML = "A regisztráció sikertelen!";
-    modal.style.display = "block";
-    setTimeout(() => {
-      modal.style.display = "none";
-      window.location.replace(window.location.href.split("?")[0]);
-    }, 2000);
-  } else if (window.location.search === "?msg=2") {
-    modal.children[0].children[0].innerHTML =
-      "A jelentkezés sikeresen visszaigazolva!";
-    modal.style.display = "block";
-    setTimeout(() => {
-      modal.style.display = "none";
-      window.location.replace(window.location.href.split("?")[0]);
-    }, 1000);
-  } else if (window.location.search === "?msg=3") {
-    modal.children[0].children[0].innerHTML = "A visszaigazolása sikertelen!";
-    modal.style.display = "block";
-    setTimeout(() => {
-      modal.style.display = "none";
-      window.location.replace(window.location.href.split("?")[0]);
-    }, 1000);
+    }, 3000);
   }
+
   setInterval(() => {
     plusSlides(1);
   }, 4000);

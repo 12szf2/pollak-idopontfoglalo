@@ -51,11 +51,11 @@ class AdminModel
             INNER JOIN
                 szakok s ON e.szakID = s.id
             LEFT JOIN
-                jelentkezok j ON e.id = j.esemenyID AND j.torolt = 0 AND j.visszaigazolt = 1
+                jelentkezok j ON e.id = j.esemenyID AND j.torolt = false AND j.visszaigazolt = true
             WHERE
-                e.torolt = 0
+                e.torolt = false
             GROUP BY
-                e.cim, e.leiras, e.kep, e.datum, e.id, u.nev, t.neve, t.ferohely
+                e.cim, e.leiras, e.kep, e.datum, e.id, u.nev, t.neve, t.ferohely, s.neve
             '
         );
 
@@ -67,7 +67,7 @@ class AdminModel
     // Tanárok lekérdezése
     public function tanarok()
     {
-        $this->db->query('SELECT id, nev FROM users WHERE torolt = 0');
+        $this->db->query('SELECT id, nev FROM users WHERE torolt = false');
         $results = $this->db->resultSet();
 
         return $results;
@@ -76,7 +76,7 @@ class AdminModel
     // Tanterem lekérdezése
     public function terem()
     {
-        $this->db->query('SELECT * FROM tanterem WHERE torolt = 0');
+        $this->db->query('SELECT * FROM tanterem WHERE torolt = false');
         $results = $this->db->resultSet();
 
         return $results;
@@ -94,7 +94,7 @@ class AdminModel
     // Esemény lekérdezése id alapján
     public function esemeny($id)
     {
-        $this->db->query('SELECT * FROM esemenyek WHERE id = :id AND torolt = 0');
+        $this->db->query('SELECT * FROM esemenyek WHERE id = :id AND torolt = false');
         $this->db->bind(':id', $id);
         $result = $this->db->single();
 
@@ -104,7 +104,7 @@ class AdminModel
     // Jelentkezők lekérdezése
     public function jelentkezokLekerzdezese($id)
     {
-        $this->db->query('SELECT j.email, j.neve, j.megjelent, j.id as "jelentkezoID" FROM jelentkezok_vt j INNER JOIN esemenyek e ON j.esemenyID = e.id WHERE j.torolt = 0 AND e.id = :id AND j.visszaigazolt = 1');
+        $this->db->query('SELECT j.email, j.neve, j.megjelent, j.id as "jelentkezoID" FROM jelentkezok_vt j INNER JOIN esemenyek e ON j.esemenyID = e.id WHERE j.torolt = false AND e.id = :id AND j.visszaigazolt = true');
         $this->db->bind(':id', $id);
         $results = $this->db->resultSet();
 
@@ -115,13 +115,14 @@ class AdminModel
     public function egyAdottEsemenyReszletei($id)
     {
         $this->db->query(
-            'SELECT e.cim, e.leiras, e.kep, e.datum, e.id AS "esemeny_id", u.nev, t.neve, t.ferohely, count(j.email) as "jelentkezok"
+            'SELECT e.cim, e.leiras, e.kep, e.datum, e.id AS esemeny_id, u.nev, t.neve, t.ferohely, count(j.email) as jelentkezok
                           FROM esemenyek e
                           INNER JOIN users u ON e.tanarID = u.id
                           INNER JOIN tanterem t ON e.tanteremID = t.id
                           INNER JOIN szakok s ON e.szakID = s.id
-                          LEFT JOIN jelentkezok_vt j ON e.id = j.esemenyID AND j.torolt = 0 AND j.visszaigazolt = 1
-                          WHERE e.id = :id AND e.torolt = 0'
+                          LEFT JOIN jelentkezok_vt j ON e.id = j.esemenyID AND j.torolt = false AND j.visszaigazolt = true
+                          WHERE e.id = :id AND e.torolt = false
+                          GROUP BY e.cim, e.leiras, e.kep, e.datum, e.id, u.nev, t.neve, t.ferohely'
         );
         $this->db->bind(':id', $id);
         $results = $this->db->single();
@@ -185,7 +186,7 @@ class AdminModel
     // Esemény törlése
     public function torles($id)
     {
-        $this->db->query('UPDATE esemenyek SET torolt = 1 WHERE id = :id');
+        $this->db->query('UPDATE esemenyek SET torolt = true WHERE id = :id');
         $this->db->bind(':id', $id);
 
         if ($this->db->execute()) {
@@ -198,7 +199,7 @@ class AdminModel
     // Felhasználó törölése
     public function felhasznaloTorles($esemeny_id, $id)
     {
-        $this->db->query('UPDATE jelentkezok SET torolt = 1 WHERE id = :id AND esemenyID = :esemeny_id');
+        $this->db->query('UPDATE jelentkezok SET torolt = true WHERE id = :id AND esemenyID = :esemeny_id');
         $this->db->bind(':id', $id);
         $this->db->bind(':esemeny_id', $esemeny_id);
 
@@ -213,7 +214,7 @@ class AdminModel
     // Felhasználó engedélyezése
     public function felhasznaloEngedelyezes($esemeny_id, $id)
     {
-        $this->db->query('UPDATE jelentkezok SET megjelent = 1 WHERE id = :id AND esemenyID = :esemeny_id');
+        $this->db->query('UPDATE jelentkezok SET megjelent = true WHERE id = :id AND esemenyID = :esemeny_id');
         $this->db->bind(':id', $id);
         $this->db->bind(':esemeny_id', $esemeny_id);
 
@@ -227,7 +228,7 @@ class AdminModel
     // Felhasználók lekérdezése
     public function getEligibleUsers($id)
     {
-        $this->db->query("SELECT neve, email, DATE(esemenyek.datum) as idopont FROM jelentkezok_vt INNER JOIN esemenyek on esemenyek.id = jelentkezok_vt.esemenyID WHERE megjelent = 1 AND jelentkezok_vt.torolt = 0 AND esemenyID = :id");
+        $this->db->query("SELECT neve, email, DATE(esemenyek.datum) as idopont FROM jelentkezok_vt INNER JOIN esemenyek on esemenyek.id = jelentkezok_vt.esemenyID WHERE megjelent = 1 AND jelentkezok_vt.torolt = false AND esemenyID = :id");
         $this->db->bind(':id', $id);
         return $this->db->resultSet();
     }
@@ -240,7 +241,7 @@ class AdminModel
         $result = $this->db->single();
 
         // Check if a duplicate already exists
-        $this->db->query('SELECT COUNT(*) as count FROM esemenyek WHERE kep = :kep AND cim = :cim AND datum = :datum AND torolt = 0');
+        $this->db->query('SELECT COUNT(*) as count FROM esemenyek WHERE kep = :kep AND cim = :cim AND datum = :datum AND torolt = false');
         $this->db->bind(':kep', $result->kep);
         $this->db->bind(':cim', $result->cim);
         $this->db->bind(':datum', $result->datum);
@@ -256,9 +257,9 @@ class AdminModel
         $this->db->bind(':cim', $result->cim);
         $this->db->bind(':leiras', $result->leiras);
         $this->db->bind(':datum', $result->datum);
-        $this->db->bind(':tanteremID', $result->tanteremID);
-        $this->db->bind(':szakID', $result->szakID);
-        $this->db->bind(':tanarID', $result->tanarID);
+        $this->db->bind(':tanteremID', $result->tanteremid);
+        $this->db->bind(':szakID', $result->szakid);
+        $this->db->bind(':tanarID', $result->tanarid);
         $this->db->bind(':tema', $result->tema);
 
         if ($this->db->execute()) {
@@ -308,7 +309,7 @@ class AdminModel
         // Lekérdezzük, hogy az adott email cím már szerepel-e az adatbázisban
         // Ha igen, akkor nem engedjük hozzáadni
         // Ha nem, akkor hozzáadjuk
-        $this->db->query('SELECT * FROM jelentkezok_vt WHERE email = :email AND esemenyID = :esemenyID AND torolt = 0');
+        $this->db->query('SELECT * FROM jelentkezok_vt WHERE email = :email AND esemenyID = :esemenyID AND torolt = false');
         $this->db->bind(':email', $email);
         $this->db->bind(':esemenyID', $esemenyID);
 
@@ -318,13 +319,13 @@ class AdminModel
             return false;
         }
 
-        $this->db->query('INSERT INTO jelentkezok (esemenyID, email, neve, visszaigazolt) VALUES (:esemenyID, :email, :neve, 1)');
+        $this->db->query('INSERT INTO jelentkezok (esemenyID, email, neve, visszaigazolt) VALUES (:esemenyID, :email, :neve, true)');
         $this->db->bind(':esemenyID', $esemenyID);
         $this->db->bind(':email', $email);
         $this->db->bind(':neve', $neve);
         $this->db->execute();
 
-        $this->db->query('SELECT id, neve, email FROM jelentkezok_vt WHERE email = :email AND esemenyID = :esemenyID AND torolt = 0');
+        $this->db->query('SELECT id, neve, email FROM jelentkezok_vt WHERE email = :email AND esemenyID = :esemenyID AND torolt = false');
         $this->db->bind(':email', $email);
         $this->db->bind(':esemenyID', $esemenyID);
 
@@ -349,7 +350,7 @@ class AdminModel
     // Verseny lekérdezése
     public function versenyLekerdezes()
     {
-        $this->db->query('SELECT * FROM versenyek WHERE torolt = 0');
+        $this->db->query('SELECT * FROM versenyek WHERE torolt = false');
         $results = $this->db->resultSet();
 
         return $results;
@@ -358,7 +359,7 @@ class AdminModel
     // Verseny lekérdezése id alapján
     public function verseny($id)
     {
-        $this->db->query('SELECT * FROM versenyek WHERE id = :id AND torolt = 0');
+        $this->db->query('SELECT * FROM versenyek WHERE id = :id AND torolt = false');
         $this->db->bind(':id', $id);
         $result = $this->db->single();
 
@@ -415,7 +416,7 @@ class AdminModel
     // Verseny törlése
     public function versenyTorles($id)
     {
-        $this->db->query('UPDATE versenyek SET torolt = 1 WHERE id = :id');
+        $this->db->query('UPDATE versenyek SET torolt = true WHERE id = :id');
         $this->db->bind(':id', $id);
 
         if ($this->db->execute()) {
@@ -432,7 +433,7 @@ class AdminModel
             'SELECT e.tema, e.leiras, e.versenynev, e.idopont, e.jelentkezesiHatarido, e.kep, e.id AS "esemeny_id", count(j.email) as "jelentkezok"
                           FROM versenyek e
                           LEFT JOIN versenyjelentkezok j ON e.id = j.versenyID
-                          WHERE e.id = :id AND e.torolt = 0'
+                          WHERE e.id = :id AND e.torolt = false'
         );
         $this->db->bind(':id', $id);
         $results = $this->db->single();
@@ -447,7 +448,7 @@ class AdminModel
                             FROM versenyjelentkezok j
                             INNER JOIN versenyek e ON j.versenyID = e.id
                             INNER JOIN evfolyam ev ON j.evfolyamID = ev.id
-                            WHERE j.torolt = 0 AND e.id = :id AND (ev.id = 1 OR ev.id = 2) 
+                            WHERE j.torolt = false AND e.id = :id AND (ev.id = 1 OR ev.id = 2) 
                             ORDER BY j.pontszam DESC');
         $this->db->bind(':id', $id);
         $results = $this->db->resultSet();
@@ -460,7 +461,7 @@ class AdminModel
                             FROM versenyjelentkezok j
                             INNER JOIN versenyek e ON j.versenyID = e.id
                             INNER JOIN evfolyam ev ON j.evfolyamID = ev.id
-                            WHERE j.torolt = 0 AND e.id = :id AND (ev.id = 3 OR ev.id = 4) 
+                            WHERE j.torolt = false AND e.id = :id AND (ev.id = 3 OR ev.id = 4) 
                             ORDER BY j.pontszam DESC');
         $this->db->bind(':id', $id);
         $results = $this->db->resultSet();
@@ -484,7 +485,7 @@ class AdminModel
     // Verseny jelentkezők lekérdezése
     public function versenyJelentkezokLekerdzese()
     {
-        $this->db->query('SELECT id, kod, tanuloNeve, email, tanuloNeve, pontszam FROM versenyjelentkezok WHERE torolt = 0 ');
+        $this->db->query('SELECT id, kod, tanuloNeve, email, tanuloNeve, pontszam FROM versenyjelentkezok WHERE torolt = false ');
         $results = $this->db->resultSet();
 
         return $results;
@@ -493,18 +494,25 @@ class AdminModel
     // Jelentkezők lekérdezése
     public function jelentkezokLekerdezes()
     {
-        $this->db->query("SELECT ANY_VALUE(j.id) AS jelentkezo_id,  ANY_VALUE(j.megjelent) AS megjelent,  j.neve AS jelentkezo, j.email, GROUP_CONCAT(CONCAT(TIME(e.datum), ';', t.neve) ORDER BY e.datum) AS idopont_terem
-                                    FROM jelentkezok_vt j
-                                    INNER JOIN 
-                                        esemenyek e ON e.id = j.esemenyID
-                                    INNER JOIN 
-                                        tanterem t ON e.tanteremID = t.id
-                                    WHERE 
-                                        j.torolt = 0 AND j.visszaigazolt = 1 
-        GROUP BY 
-            j.email, j.neve
-        ORDER BY 
-            j.neve ASC");
+        $this->db->query("SELECT
+                            MIN(CAST(j.id AS TEXT)) AS jelentkezo_id,
+                            MIN(CAST(j.megjelent AS INTEGER)) AS megjelent,
+                            j.neve AS jelentkezo,
+                            j.email,
+                            STRING_AGG(CONCAT(TO_CHAR(e.datum, 'HH24:MI'), ';', t.neve), ',' ORDER BY e.datum) AS idopont_terem
+                            FROM
+                                jelentkezok_vt j
+                            INNER JOIN
+                                esemenyek e ON e.id = j.esemenyID
+                            INNER JOIN
+                                tanterem t ON e.tanteremID = t.id
+                            WHERE
+                                j.torolt = false AND j.visszaigazolt = true
+                            GROUP BY
+                                j.email, j.neve
+                            ORDER BY
+                                j.neve ASC
+                        ");
 
         $results = $this->db->resultSet();
 
@@ -514,7 +522,7 @@ class AdminModel
     // Időpontok lekérdezése
     public function idopontokLekerdezes()
     {
-        $this->db->query('SELECT DISTINCT time(datum) as idopont FROM esemenyek WHERE torolt = 0 ORDER BY idopont ASC');
+        $this->db->query('SELECT DISTINCT TO_CHAR(datum, \'HH24:MI:SS\') as idopont FROM esemenyek WHERE torolt = false ORDER BY idopont ASC');
         $results = $this->db->resultSet();
 
         return $results;
@@ -522,7 +530,7 @@ class AdminModel
 
     public function jelentkezokSzamaLekerdezes()
     {
-        $this->db->query('SELECT count(distinct email) as jelentkezok_szama from jelentkezok_vt where torolt = 0 AND visszaigazolt = 1');
+        $this->db->query('SELECT count(distinct email) as jelentkezok_szama from jelentkezok_vt where torolt = false AND visszaigazolt = true');
         $result = $this->db->single();
 
         return $result;
@@ -531,7 +539,7 @@ class AdminModel
     // Felhasználó engedélyezése
     public function felhasznaloEngedelyezese($email)
     {
-        $this->db->query('UPDATE jelentkezok SET megjelent = 1 WHERE email = :email');
+        $this->db->query('UPDATE jelentkezok SET megjelent = true WHERE email = :email');
         $this->db->bind(':email', $email);
 
         if ($this->db->execute()) {
@@ -544,7 +552,7 @@ class AdminModel
     // Felhasználó törlése
     public function felhasznaloTorlese($email)
     {
-        $this->db->query('UPDATE jelentkezok SET torolt = 1 WHERE email = :email');
+        $this->db->query('UPDATE jelentkezok SET torolt = true WHERE email = :email');
         $this->db->bind(':email', $email);
 
         if ($this->db->execute()) {
@@ -557,22 +565,22 @@ class AdminModel
     // Összes felhasználó törlése
     public function osszesFelhasznaloTorlese()
     {
-        $this->db->query('UPDATE jelentkezok SET torolt = 1');
+        $this->db->query('UPDATE jelentkezok SET torolt = true');
         $this->db->execute();
 
         return true;
-    } 
+    }
 
 
     // Felhasználók lekérdezése
     public function engedelyezettFelhasznalok()
     {
-        $this->db->query("SELECT neve, email, DATE(esemenyek.datum) as idopont FROM jelentkezok_vt INNER JOIN esemenyek on esemenyek.id = jelentkezok_vt.esemenyID WHERE megjelent = 1 AND jelentkezok_vt.torolt = 0 ");
+        $this->db->query("SELECT neve, email, DATE(esemenyek.datum) as idopont FROM jelentkezok_vt INNER JOIN esemenyek on esemenyek.id = jelentkezok_vt.esemenyID WHERE megjelent = 1 AND jelentkezok_vt.torolt = false ");
         return $this->db->resultSet();
     }
     public function mindefelhasznalo()
     {
-        $this->db->query("SELECT neve, email, DATE(esemenyek.datum) as idopont FROM jelentkezok_vt INNER JOIN esemenyek on esemenyek.id = jelentkezok_vt.esemenyID WHERE jelentkezok_vt.torolt = 0 ");
+        $this->db->query("SELECT neve, email, DATE(esemenyek.datum) as idopont FROM jelentkezok_vt INNER JOIN esemenyek on esemenyek.id = jelentkezok_vt.esemenyID WHERE jelentkezok_vt.torolt = false ");
         return $this->db->resultSet();
     }
 
@@ -602,7 +610,7 @@ class AdminModel
                                     INNER JOIN 
                                         tanterem t ON e.tanteremID = t.id
                                     WHERE 
-                                        j.torolt = 0 AND j.visszaigazolt = 1 AND (j.neve LIKE :keresendo)
+                                        j.torolt = false AND j.visszaigazolt = true AND (j.neve LIKE :keresendo)
                                     GROUP BY 
                                         j.email, j.neve
                                     ORDER BY 
@@ -619,13 +627,13 @@ class AdminModel
             if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $this->db->query('select e.id, e.cim, e.tema, e.datum, e.leiras
                 from esemenyek e
-                where day(e.datum - interval 1 day) = day(NOW()) AND month(e.datum) = month(NOW()) AND year(e.datum) = year(NOW()) AND torolt = 0');
+                where day(e.datum - interval 1 day) = day(NOW()) AND month(e.datum) = month(NOW()) AND year(e.datum) = year(NOW()) AND torolt = false');
 
                 $row = $this->db->resultSet();
                 for ($i = 0; $i < count($row); $i++) {
                     $this->db->query('select j.neve, j.email
                     from jelentkezok j
-                    where j.esemenyID = :esemenyID AND torolt = 0');
+                    where j.esemenyID = :esemenyID AND torolt = false');
                     $this->db->bind(':esemenyID', $row[$i]->id);
                     $row2 = $this->db->resultSet();
 

@@ -1,11 +1,12 @@
 <?php
-  require APPROOT . '/views/includes/head.php';
-  require APPROOT . '/views/includes/adminNavigation.php';
+require APPROOT . '/views/includes/head.php';
+require APPROOT . '/views/includes/adminNavigation.php';
+
 ?>
 
 <form action="<?php echo URLROOT; ?>/admin/szerkesztes/<?php echo $data['esemeny']->id ?>" method="post" enctype="multipart/form-data">
      <div class="kontener">
-     
+
           <div class="pirulak">
                <div class="pill-1 rotate-45"></div>
                <div class="pill-2 rotate-45"></div>
@@ -34,25 +35,25 @@
 
                <div>
                     <select name="tanteremID" id="id-tanterem">
-                        <?php foreach ($data['terem'] as $fajta): ?>
-                            <option class="marka" value="<?php echo $fajta->id; ?>" <?php echo ($data['esemeny']->tanteremID == $fajta->id) ? 'selected' : ''; ?>><?php echo htmlspecialchars($fajta->neve); ?></option>
-                        <?php endforeach; ?>
+                         <?php foreach ($data['terem'] as $fajta): ?>
+                              <option class="marka" value="<?php echo $fajta->id; ?>" <?php echo ($data['esemeny']->tanteremid == $fajta->id) ? 'selected' : ''; ?>><?php echo htmlspecialchars($fajta->neve); ?></option>
+                         <?php endforeach; ?>
                     </select>
                </div>
 
                <div>
                     <select name="tanar" id="id-tanar">
-                        <?php foreach ($data['tanarok'] as $fajta): ?>
-                            <option class="marka" value="<?php echo $fajta->id; ?>" <?php echo ($data['esemeny']->tanarID == $fajta->id) ? 'selected' : ''; ?>><?php echo htmlspecialchars($fajta->nev); ?></option>
-                        <?php endforeach; ?>
+                         <?php foreach ($data['tanarok'] as $fajta): ?>
+                              <option class="marka" value="<?php echo $fajta->id; ?>" <?php echo ($data['esemeny']->tanarid == $fajta->id) ? 'selected' : ''; ?>><?php echo htmlspecialchars($fajta->nev); ?></option>
+                         <?php endforeach; ?>
                     </select>
                </div>
 
                <div>
                     <select name="szak" id="id-szak">
-                        <?php foreach ($data['szak'] as $fajta): ?>
-                            <option class="marka" value="<?php echo $fajta->id; ?>" <?php echo ($data['esemeny']->szakID == $fajta->id) ? 'selected' : ''; ?>><?php echo htmlspecialchars($fajta->neve); ?></option>
-                        <?php endforeach; ?>
+                         <?php foreach ($data['szak'] as $fajta): ?>
+                              <option class="marka" value="<?php echo $fajta->id; ?>" <?php echo ($data['esemeny']->szakid == $fajta->id) ? 'selected' : ''; ?>><?php echo htmlspecialchars($fajta->neve); ?></option>
+                         <?php endforeach; ?>
                     </select>
                </div>
 

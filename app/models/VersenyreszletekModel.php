@@ -16,7 +16,7 @@ class VersenyreszletekModel
             'SELECT e.tema, e.leiras, e.versenynev,e.jelentkezesiHatarido, e.kep ,e.idopont, e.id AS "esemeny_id", count(j.email) as "jelentkezok"
                           FROM versenyek e
                           LEFT JOIN versenyjelentkezok j ON e.id = j.versenyID
-                          WHERE e.id = :id AND e.torolt = 0'
+                          WHERE e.id = :id AND e.torolt = false'
         );
         $this->db->bind(':id', $id);
         $results = $this->db->single();
@@ -47,7 +47,7 @@ class VersenyreszletekModel
                             FROM versenyjelentkezok j
                             INNER JOIN versenyek e ON j.versenyID = e.id
                             INNER JOIN evfolyam ev ON j.evfolyamID = ev.id
-                            WHERE j.torolt = 0 AND e.id = :id AND (ev.id = 1 OR ev.id = 2) 
+                            WHERE j.torolt = false AND e.id = :id AND (ev.id = 1 OR ev.id = 2) 
                             ORDER BY j.pontszam DESC');
         $this->db->bind(':id', $id);
         $results = $this->db->resultSet();
@@ -60,7 +60,7 @@ class VersenyreszletekModel
                             FROM versenyjelentkezok j
                             INNER JOIN versenyek e ON j.versenyID = e.id
                             INNER JOIN evfolyam ev ON j.evfolyamID = ev.id
-                            WHERE j.torolt = 0 AND e.id = :id AND (ev.id = 3 OR ev.id = 4) 
+                            WHERE j.torolt = false AND e.id = :id AND (ev.id = 3 OR ev.id = 4) 
                             ORDER BY j.pontszam DESC');
         $this->db->bind(':id', $id);
         $results = $this->db->resultSet();

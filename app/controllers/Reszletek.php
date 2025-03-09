@@ -1,13 +1,16 @@
 <?php
 #[AllowDynamicProperties]
 
-class Reszletek extends Controller {
-    public function __construct() {
+class Reszletek extends Controller
+{
+    public function __construct()
+    {
         $this->reszletekModel = $this->model('ReszletekModel');
     }
 
     // Az esemény részleteinek megjelenítése
-    public function index($id) {
+    public function index($id)
+    {
 
         $data = [
             'reszletek' => $this->reszletekModel->egyAdottEsemenyReszletei($id)
@@ -24,27 +27,26 @@ class Reszletek extends Controller {
             $email = trim($_POST['email']);
             $neve = trim($_POST['neve']);
 
-                if ($this->reszletekModel->emailHozzadas($esemenyID, $email, $neve)) {
-                    // A hozzáadás sikerült, ezért beállítjuk az üzenetet 0-ra
-                    header('location:' . URLROOT . '/reszletek/' . $esemenyID . '?msg=0');
-                }
-                else {
-                    // A hozzáadás nem sikerült ezért beállítjuk az üzenetet 1-re
-                    header('location:' . URLROOT . '/reszletek/' . $esemenyID . '?msg=1');
-                }
-            }
-        }
+            $msg = $this->reszletekModel->emailHozzadas(
+                $esemenyID,
+                $email,
+                $neve
+            );
 
-    public function jelentkezes($id) {
+            header('location:' . URLROOT . '/reszletek/' . $esemenyID . '?msg=' . $msg);
+        }
+    }
+
+    public function jelentkezes($id)
+    {
 
         $this->view('reszletek/jelentkezes/index');
 
         $esemenyID = $this->reszletekModel->visszaigazol($id);
 
-        if($esemenyID) {
+        if ($esemenyID) {
             header('location:' . URLROOT . '/reszletek/' . $esemenyID . '?msg=2');
-        }
-        else {
+        } else {
             header('location:' . URLROOT . '/reszletek/' . $esemenyID . '?msg=3');
         }
     }
@@ -62,7 +64,4 @@ class Reszletek extends Controller {
             header('location:' . URLROOT);
         }
     }
-        
 }
-
-

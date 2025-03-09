@@ -25,11 +25,11 @@ class MainModel
             INNER JOIN
                 szakok s ON e.szakID = s.id
             LEFT JOIN
-                jelentkezok_vt j ON e.id = j.esemenyID AND j.torolt = 0 AND j.visszaigazolt = 1
+                jelentkezok_vt j ON e.id = j.esemenyID AND j.torolt = false AND j.visszaigazolt = true
             WHERE
-                e.torolt = 0
+                e.torolt = false
             GROUP BY
-                e.cim, e.leiras, e.kep, e.datum, e.id, u.nev, t.neve, t.ferohely
+                e.cim, e.leiras, e.kep, e.datum, e.id, u.nev, t.neve, t.ferohely, s.neve
             '
         );
 
@@ -41,7 +41,7 @@ class MainModel
     // Időpontok lekérdezése
     public function idopontokLekerdezesNap()
     {
-        $this->db->query('SELECT distinct DATE(datum) AS datum FROM esemenyek WHERE torolt = 0');
+        $this->db->query('SELECT distinct DATE(datum) AS datum FROM esemenyek WHERE torolt = false');
         $results = $this->db->resultSet();
 
         return $results;
@@ -49,7 +49,7 @@ class MainModel
 
     public function idopontokLekerdezesOra()
     {
-        $this->db->query('SELECT distinct TIME(datum) AS datum FROM esemenyek WHERE torolt = 0');
+        $this->db->query('SELECT distinct TO_CHAR(datum, \'HH24:MI:SS\') AS datum FROM esemenyek WHERE torolt = false');
         $results = $this->db->resultSet();
 
         return $results;
@@ -67,7 +67,7 @@ class MainModel
     // Oktatók lekérdezése
     public function oktatokLekerdezes()
     {
-        $this->db->query('SELECT DISTINCT users.nev, users.id FROM users INNER JOIN esemenyek ON esemenyek.tanarID = users.id AND esemenyek.torolt = 0;');
+        $this->db->query('SELECT DISTINCT users.nev, users.id FROM users INNER JOIN esemenyek ON esemenyek.tanarID = users.id AND esemenyek.torolt = false;');
         $results = $this->db->resultSet();
 
         return $results;
@@ -76,7 +76,7 @@ class MainModel
     // Tantermek lekérdezése
     public function teremLekerdezes()
     {
-        $this->db->query('SELECT DISTINCT tanterem.neve, tanterem.id FROM tanterem INNER JOIN esemenyek ON esemenyek.tanteremID = tanterem.id AND tanterem.torolt = 0;');
+        $this->db->query('SELECT DISTINCT tanterem.neve, tanterem.id FROM tanterem INNER JOIN esemenyek ON esemenyek.tanteremID = tanterem.id AND tanterem.torolt = false;');
         $results = $this->db->resultSet();
 
         return $results;
@@ -111,11 +111,11 @@ class MainModel
         INNER JOIN
             tanterem t ON e.tanteremID = t.id
         LEFT JOIN
-            jelentkezok j ON e.id = j.esemenyID AND j.torolt = 0
+            jelentkezok j ON e.id = j.esemenyID AND j.torolt = false
         INNER JOIN
             szakok s ON e.szakID = s.id
         WHERE
-            e.torolt = 0
+            e.torolt = false
             AND (e.cim LIKE :keresendo OR e.leiras LIKE :keresendo OR u.nev LIKE :keresendo)
         GROUP BY
             e.cim, e.leiras, e.kep, e.datum, e.id, u.nev, t.neve, t.ferohely;     
@@ -130,28 +130,28 @@ class MainModel
     public function termekekSzurese($szuroObj)
     {
         $this->db->query(
-            "SELECT 
-                   e.tema, e.cim, e.leiras, e.kep, e.datum, e.id AS 'esemeny_id', s.neve,
-                    u.nev, t.neve, t.ferohely, count(j.email) as 'jelentkezok' 
-                FROM 
-                    esemenyek e 
-                INNER JOIN 
-                    users u ON e.tanarID = u.id 
-                INNER JOIN 
+            "SELECT
+                   e.tema, e.cim, e.leiras, e.kep, e.datum, e.id AS esemeny_id, s.neve,
+                    u.nev, t.neve, t.ferohely, count(j.email) as jelentkezok
+                FROM
+                    esemenyek e
+                INNER JOIN
+                    users u ON e.tanarID = u.id
+                INNER JOIN
                     tanterem t ON e.tanteremID = t.id
                 INNER JOIN
                     szakok s ON e.szakID = s.id
-                LEFT JOIN 
-                    jelentkezok j ON e.id = j.esemenyID AND j.torolt = 0
-                WHERE 
-                    e.torolt = 0 
-                    AND (:szak = '' OR s.id = :szak)
-                    AND (:tanar = '' OR u.id = :tanar)
-                    AND (:terem = '' OR t.id = :terem)
-                    AND (:nap IS NULL OR DATE(e.datum) = :nap)
-                    AND (:ora = '' OR TIME_FORMAT(e.datum, '%H:%i') >= :ora)
-                GROUP BY 
-                    e.cim, e.leiras, e.kep, e.datum, e.id, u.nev, t.neve, t.ferohely;
+                LEFT JOIN
+                    jelentkezok j ON e.id = j.esemenyID AND j.torolt = false
+                WHERE
+                    e.torolt = false
+                    AND (:szak::text = '' OR s.id = :szak::int)
+                    AND (:tanar::text = '' OR u.id = :tanar::int)
+                    AND (:terem::text = '' OR t.id = :terem::int)
+                    AND (:nap::date IS NULL OR DATE(e.datum) = :nap::date)
+                    AND (:ora::text = '' OR TO_CHAR(e.datum, 'HH24:MI') >= :ora)
+                GROUP BY
+                    e.cim, e.leiras, e.kep, e.datum, e.id, u.nev, t.neve, t.ferohely, s.neve;
             "
         );
 
