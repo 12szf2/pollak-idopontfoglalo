@@ -5,7 +5,7 @@ FROM php:apache
 RUN apt-get update && apt-get upgrade -y
 
 # Install any needed packages specified in requirements.txt
-RUN docker-php-ext-install mysqli pdo pdo_mysql pdo_pgsql && docker-php-ext-enable pdo_mysql pdo_pgsql
+RUN apt-get install -y libpq-dev && docker-php-ext-install pdo pdo_pgsql
 
 # Copy the current directory contents into the container at /var/www/html
 ADD . /var/www/html
