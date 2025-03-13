@@ -40,9 +40,9 @@ window.onload = function () {
     }, 3000);
   }
 
-  setInterval(() => {
-    plusSlides(1);
-  }, 4000);
+  // setInterval(() => {
+  //   plusSlides(1);
+  // }, 4000);
 };
 
 function changeDisplayTestForModal(text, time) {
@@ -81,7 +81,7 @@ function back() {
 }
 
 var slideIndex = 1;
-showSlides(slideIndex);
+// showSlides(slideIndex);
 
 function plusSlides(n) {
   showSlides((slideIndex += n));

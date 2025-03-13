@@ -37,7 +37,7 @@ require APPROOT . '/views/includes/navigation.php';
     </div>
   </div>
 
-  <h1>Pollák Időpontfoglaló Rendszere</h1>
+  <h1>HSZC Pollák Antal Technikum Időpontfoglaló Rendszere</h1>
 
   <div class="">
     <div>

@@ -214,7 +214,7 @@ class AdminModel
     // Felhasználó engedélyezése
     public function felhasznaloEngedelyezes($esemeny_id, $id)
     {
-        $this->db->query('UPDATE jelentkezok SET megjelent = true WHERE id = :id AND esemenyID = :esemeny_id');
+        $this->db->query('UPDATE jelentkezok SET megjelent = NOT megjelent WHERE id = :id AND esemenyID = :esemeny_id');
         $this->db->bind(':id', $id);
         $this->db->bind(':esemeny_id', $esemeny_id);
 
@@ -499,6 +499,8 @@ class AdminModel
                             MIN(CAST(j.megjelent AS INTEGER)) AS megjelent,
                             j.neve AS jelentkezo,
                             j.email,
+                            j.parent_email,
+                            j.megfelel,
                             STRING_AGG(CONCAT(TO_CHAR(e.datum, 'HH24:MI'), ';', t.neve), ',' ORDER BY e.datum) AS idopont_terem
                             FROM
                                 jelentkezok_vt j
@@ -509,7 +511,7 @@ class AdminModel
                             WHERE
                                 j.torolt = false AND j.visszaigazolt = true
                             GROUP BY
-                                j.email, j.neve
+                                j.email, j.neve, j.parent_email, j.megfelel
                             ORDER BY
                                 j.neve ASC
                         ");
@@ -539,7 +541,7 @@ class AdminModel
     // Felhasználó engedélyezése
     public function felhasznaloEngedelyezese($email)
     {
-        $this->db->query('UPDATE jelentkezok SET megjelent = true WHERE email = :email');
+        $this->db->query('UPDATE jelentkezok SET megjelent = NOT megjelent WHERE email = :email');
         $this->db->bind(':email', $email);
 
         if ($this->db->execute()) {
@@ -659,6 +661,44 @@ class AdminModel
             }
         } else {
             $data = [];
+        }
+    }
+
+    public function saveEmailChange($jelentkezo_id, $email)
+    {
+        $this->db->query('UPDATE jelentkezok SET email = :email WHERE id = :jelentkezo_id');
+        $this->db->bind(':email', $email);
+        $this->db->bind(':jelentkezo_id', $jelentkezo_id);
+
+        if ($this->db->execute()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public function saveParentEmailChange($jelentkezo_id, $email)
+    {
+        $this->db->query('UPDATE jelentkezok SET parent_email = :email WHERE id = :jelentkezo_id');
+        $this->db->bind(':email', $email);
+        $this->db->bind(':jelentkezo_id', $jelentkezo_id);
+
+        if ($this->db->execute()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public function felhasznaloMegfelel($email)
+    {
+        $this->db->query('UPDATE jelentkezok SET megfelel = NOT megfelel WHERE email = :email');
+        $this->db->bind(':email', $email);
+
+        if ($this->db->execute()) {
+            return true;
+        } else {
+            return false;
         }
     }
 }

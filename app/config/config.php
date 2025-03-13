@@ -15,8 +15,8 @@ if (getenv('PRODUCTION')) {
     define('EMAIL_ADDRESS', getenv('EMAIL_ADDRESS'));
 } else {
     define('DB_HOST', 'localhost');
-    define('DB_USER', 'root');
-    define('DB_PASS', '');
+    define('DB_USER', 'postgres');
+    define('DB_PASS', 'Tdaclantm22!!');
     define('DB_NAME', 'pollakidopontfoglalas');
 
     define('URLROOT', 'http://localhost/pollak-idopontfoglalo');

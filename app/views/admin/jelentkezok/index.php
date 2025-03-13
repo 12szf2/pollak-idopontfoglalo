@@ -22,6 +22,7 @@ require APPROOT . '/views/includes/adminNavigation.php';
         <tr>
             <th>Látogató neve</th>
             <th>Látogató email címe</th>
+            <th>Szülő email címe</th>
             <?php if (count($data["idopontok"]) > 0) : ?>
                 <?php foreach ($data["idopontok"] as $sor): ?>
 
@@ -35,7 +36,8 @@ require APPROOT . '/views/includes/adminNavigation.php';
             <?php foreach ($data["jelentkezok"] as $sor): ?>
                 <tr>
                     <td><?php echo $sor->jelentkezo ?></td>
-                    <td><?php echo $sor->email ?></td>
+                    <td contenteditable="true" id="email" onkeydown="saveEmailChange(event, '<?php echo $sor->jelentkezo_id ?>')"><?php echo $sor->email ?></td>
+                    <td contenteditable="true" id="emailSzulo" onkeydown="saveParentEmailChange(event, '<?php echo $sor->jelentkezo_id ?>')"><?php echo $sor->parent_email ?></td>
                     <?php foreach ($data["idopontok"] as $sor2): ?>
                         <td>
                             <?php
@@ -53,21 +55,21 @@ require APPROOT . '/views/includes/adminNavigation.php';
                                         $matchFound = true;
                                     }
                                 }
-                                if (!$matchFound) {
-                                    echo "";
-                                }
-                            } else {
-                                echo "";
+                                // if (!$matchFound) {
+                                //     echo "";
+                                // }
                             }
+                            // else {
+                            //     echo "";
+                            // }
                             ?>
                         </td>
                     <?php endforeach; ?>
 
                     <td>
-                        <?php if ($sor->megjelent == 0) : ?>
-                            <a class="jelentkezoTorles" onclick="return confirm('Biztos megjelent?')" href="<?php echo URLROOT ?>/admin/felhasznaloEngedelyezese/<?php echo $sor->email ?>"><i class='bx bxs-user-check'></i></a>
-                        <?php endif; ?>
+                        <a class="jelentkezoTorles" onclick="return confirm('Biztos megjelent?')" href="<?php echo URLROOT ?>/admin/felhasznaloEngedelyezese/<?php echo $sor->email ?>"><i style="color: <?php echo $sor->megjelent ? "green" : "red" ?>;" class='bx bxs-been-here'></i></a>
 
+                        <a class="jelentkezoTorles" onclick="return confirm('Biztos megfelelnek az adatok?')" href="<?php echo URLROOT ?>/admin/felhasznaloMegfelel/<?php echo $sor->email ?>"><i style="color: <?php echo $sor->megfelel ? "green" : "red" ?>;" class='bx bxs-user-check'></i></a>
                         <a class="jelentkezoTorles" onclick="return confirm('Biztos törölni szeretnéd?')" href="<?php echo URLROOT ?>/admin/felhasznaloTorlese/<?php echo $sor->email ?>"><i class='bx bxs-trash'></i></a></h3>
                     </td>
 
@@ -93,3 +95,46 @@ require APPROOT . '/views/includes/adminNavigation.php';
     </form>
 
     <script src="<?php echo URLROOT ?>/public/js/script.js"></script>
+    <script>
+        function saveEmailChange(event, id) {
+            if (event.code === "Enter") {
+                event.preventDefault();
+
+                fetch("<?php echo URLROOT ?>/admin/saveEmailChange", {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    method: "POST",
+                    body: JSON.stringify({
+                        jelentkezoID: id,
+                        email: event.target.innerText
+                    })
+                }).then(async (response) => {
+                    console.log(await response.text());
+                }).catch(err => {
+                    console.log(err);
+                });
+            }
+        }
+
+        function saveParentEmailChange(event, id) {
+            if (event.code === "Enter") {
+                event.preventDefault();
+
+                fetch("<?php echo URLROOT ?>/admin/saveParentEmailChange", {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    method: "POST",
+                    body: JSON.stringify({
+                        jelentkezoID: id,
+                        email: event.target.innerText
+                    })
+                }).then(async (response) => {
+                    console.log(await response.text());
+                }).catch(err => {
+                    console.log(err);
+                });
+            }
+        }
+    </script>

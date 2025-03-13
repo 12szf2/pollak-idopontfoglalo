@@ -631,6 +631,23 @@ class Admin extends Controller
         }
     }
 
+    public function felhasznaloMegfelel($email)
+    {
+        if (isLoggedIn()) {
+            if ($this->adminModel->felhasznaloMegfelel($email)) {
+                // A törlés sikerült, átirányítjuk a felhasználót az adminfőoldalra
+                header('location:' . URLROOT . '/admin/jelentkezok/');
+            } else {
+                // A törlés nem sikerült
+                header('location:' . URLROOT . '/admin/jelentkezok/');
+            }
+        } else {
+            $data = [];
+
+            $this->view('user/login');
+        }
+    }
+
     public function exportPDF()
     {
         // Check if the user is logged in
@@ -797,5 +814,32 @@ class Admin extends Controller
         ];
 
         $this->view('admin/jelentkezok/termekek', $data);
+    }
+
+    public function saveEmailChange()
+    {
+        $_POST = json_decode(file_get_contents('php://input'), true);
+
+        $jelentkezo_id = $_POST['jelentkezoID'];
+        $email = $_POST['email'];
+
+        if ($this->adminModel->saveEmailChange($jelentkezo_id, $email)) {
+            echo "Sikeres mentés!";
+        } else {
+            echo "Sikertelen mentés!";
+        }
+    }
+
+    public function saveParentEmailChange()
+    {
+        $_POST = json_decode(file_get_contents('php://input'), true);
+        $jelentkezo_id = $_POST['jelentkezoID'];
+        $email = $_POST['email'];
+
+        if ($this->adminModel->saveParentEmailChange($jelentkezo_id, $email)) {
+            echo "Sikeres mentés!";
+        } else {
+            echo "Sikertelen mentés!";
+        }
     }
 }
