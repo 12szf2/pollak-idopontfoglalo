@@ -605,18 +605,26 @@ class AdminModel
         $keresendo = $this->replaceHungarianAccents($keresendo);
 
         $this->db->query(
-            "SELECT ANY_VALUE(j.id) AS jelentkezo_id,  ANY_VALUE(j.megjelent) AS megjelent,  j.neve AS jelentkezo, j.email, GROUP_CONCAT(CONCAT(TIME(e.datum), ';', t.neve) ORDER BY e.datum) AS idopont_terem
-                                    FROM jelentkezok_vt j
-                                    INNER JOIN 
-                                        esemenyek e ON e.id = j.esemenyID
-                                    INNER JOIN 
-                                        tanterem t ON e.tanteremID = t.id
-                                    WHERE 
-                                        j.torolt = false AND j.visszaigazolt = true AND (j.neve LIKE :keresendo)
-                                    GROUP BY 
-                                        j.email, j.neve
-                                    ORDER BY 
-                                        j.neve ASC"
+            "SELECT
+                            MIN(CAST(j.id AS TEXT)) AS jelentkezo_id,
+                            MIN(CAST(j.megjelent AS INTEGER)) AS megjelent,
+                            j.neve AS jelentkezo,
+                            j.email,
+                            j.parent_email,
+                            j.megfelel,
+                            STRING_AGG(CONCAT(TO_CHAR(e.datum, 'HH24:MI'), ';', t.neve), ',' ORDER BY e.datum) AS idopont_terem
+                            FROM
+                                jelentkezok_vt j
+                            INNER JOIN
+                                esemenyek e ON e.id = j.esemenyID
+                            INNER JOIN
+                                tanterem t ON e.tanteremID = t.id
+                            WHERE
+                                j.torolt = false AND j.visszaigazolt = true AND (j.neve LIKE :keresendo)
+                            GROUP BY
+                                j.email, j.neve, j.parent_email, j.megfelel
+                            ORDER BY
+                                j.neve ASC"
         );
 
         $this->db->bind(':keresendo', "%$keresendo%");
