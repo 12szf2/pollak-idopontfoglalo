@@ -16,7 +16,7 @@ if (getenv('PRODUCTION')) {
 } else {
     define('DB_HOST', 'localhost');
     define('DB_USER', 'postgres');
-    define('DB_PASS', 'Tdaclantm22!!');
+    define('DB_PASS', 'admin');
     define('DB_NAME', 'pollakidopontfoglalas');
 
     define('URLROOT', 'http://localhost/pollak-idopontfoglalo');
